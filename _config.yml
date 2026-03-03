@@ -18,3 +18,4 @@ exclude:
   - LeanBlockCourse26/
   - BlockCourse/
   - README.md
+  - scripts/
