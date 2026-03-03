@@ -414,3 +414,85 @@ example (P Q R : Prop) (h₁ : P ↔ Q) (h₂ : Q ↔ R) : P ↔ R := by
 -- Works with equality of propositions too (but this is not really relevant for mathematics...)
 example (P Q R : Prop) (h₁ : P = Q) (h₂ : Q = R) : P = R := by
   rw [h₁, h₂]
+
+/-
+## Reverse Rewriting and Symmetry
+
+Sometimes the equality (or equivalence) provided in a hypothesis goes in the opposite direction
+than the one you need in your goal. There are several ways to handle this:
+
+1. **Using `rw [← h]`:**
+   The arrow `←` tells Lean to use the *reverse* of the given hypothesis `h`.
+   For example, if you have `h : Q = P` and your goal is `P = Q`, then `rw [← h]` reverses `h`.
+   This syntax is used around 55,000 times in mathlib.
+
+2. **Using `h.symm`:**
+   If `h` is an equality (or an equivalence with a symmetric property), then `h.symm` produces
+   its symmetric version. You can use this directly in the `rw` tactic. This syntax is used around
+   13,000 times in mathlib.
+
+3. **Using the `symm` tactic (`symm at h`):**
+   The `symm` tactic can update a hypothesis in-place to its symmetric version.
+   After doing `symm at h`, the hypothesis `h` will have its arguments swapped.
+   This tactic is basically unused in mathlib.
+
+Below are examples illustrating each approach.
+-/
+
+-- Example 1: Reverse rewriting using `rw [← h]`
+example (P Q R : Prop) (h₁ : Q ↔ P) (h₂ : Q ↔ R) : P ↔ R := by
+  rw [← h₁] -- rewrites `P` as `Q`, *not* `Q` as `P` as `rw [h₁]` would
+  assumption
+
+-- Example 2: Using h.symm in rewriting
+example (P Q R : Prop) (h₁ : Q ↔ P) (h₂ : Q ↔ R) : P ↔ R := by
+  let p_iff_q := h₁.symm -- note that *here*  `← h₁.` would not work
+  rw [p_iff_q]
+  assumption
+
+example (P Q R : Prop) (h₁ : Q ↔ P) (h₂ : Q ↔ R) : P ↔ R := by
+  rw [h₁.symm]
+  assumption
+
+-- `.symm` can also be used in term mode
+example (P Q : Prop) (h : Q ↔ P) : P ↔ Q := h.symm
+
+-- Example 3: Using the symm tactic to update a hypothesis in place
+example (P Q : Prop) (h : Q ↔ P) : P ↔ Q := by
+  symm at h -- rewrites `h` using symmetry
+  exact h
+
+example (P Q : Prop) (h : Q ↔ P) : P ↔ Q := by
+  symm -- rewrites the goal using symmetry
+  exact h
+
+/-
+Note that we can use the `nth_rw` tactic for some more precise control
+over which occurrence of a pattern to rewrite. This is particularly useful when:
+- There are multiple matches in the goal or hypothesis
+- You need to preserve some instances while changing others
+- The default rewrite behavior modifies the wrong occurrence
+
+This tactic is only used around 400 times in mathlib.
+-/
+
+example (P Q : Prop) (h : Q ↔ P) (pqr : P ∧ Q ∧ P) : P ∧ Q ∧ Q := by
+  -- rw [h] -- What does this *actually* rewrite? Every ocurrence of `Q`!
+  nth_rw 2 [h] -- This however only rewrites the second ocurrence of `Q`
+  assumption
+
+/-
+## Exercise Block 3
+-/
+
+-- Exercise 3.1
+-- Shows how to use `rw` to prove that if `P` and `Q` are equivalent, and `Q` and
+-- `R` are equivalent, then `P` and `R` are equivalent (transitivity of `↔`)
+example (P Q R : Prop) (h₁ : P ↔ Q) (h₂ : Q ↔ R) : P ↔ R := by
+  sorry
+
+-- Exercise 3.2
+-- Shows how to use `rw` to prove that if `P` and `Q` are equivalent, and `Q` and `R`
+-- are equivalent, then `P` and `R` are equivalent (transitivity of `↔`)
+example (P Q : Prop) (h : Q ↔ P) : P → Q := by
+  sorry
