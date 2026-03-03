@@ -32,15 +32,15 @@ Participants need to **bring a laptop** to follow along and work on exercises. T
 
 The course outline is still subject to change, but will roughly be as follows:
 
-1) **P01_Introduction** — Why formalize maths?
-1) **P01_Introduction** — The tech stack: how to properly organize a formalization project.
-1) **P02_Logic** — Foundations of logic in Lean: what is a type and what does being classical vs. intuitionistic mean?
-1) **P03_SetTheory** — Set theory in Lean: why you should rarely do set theory in Lean.
-1) **P04_TypeTheory** — Dependent type theory: where do the axioms live?
-1) **P05_NaturalNumbers** — Natural numbers in Lean: why inductive types are so powerful.
-1) **P06_InfinitePrimes** — Your first real proof in Lean.
-1) **P07_Mantel** — Graph theory and combinatorics in Lean.
-1) **Examination** — Final exam and distribution of formalization projects for Master-level students.
+1. **P01_Introduction** — Why formalize maths?
+1. **P01_Introduction** — The tech stack: how to properly organize a formalization project.
+1. **P02_Logic** — Foundations of logic in Lean: what is a type and what does being classical vs. intuitionistic mean?
+1. **P03_SetTheory** — Set theory in Lean: why you should rarely do set theory in Lean.
+1. **P04_TypeTheory** — Dependent type theory: where do the axioms live?
+1. **P05_NaturalNumbers** — Natural numbers in Lean: why inductive types are so powerful.
+1. **P06_InfinitePrimes** — Your first real proof in Lean.
+1. **P07_Mantel** — Graph theory and combinatorics in Lean.
+1. **Examination** — Final exam and distribution of formalization projects for Master-level students.
 
 ## Reference
 
