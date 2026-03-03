@@ -398,11 +398,11 @@ example (P Q : Prop) (h₁ : P ↔ Q) (p : P) : Q := by
   exact q
 
 -- Multiple rewrites
-theorem test (P Q R : Prop) (h₁ : P ↔ Q) (h₂ : R ↔ Q) : P ↔ R := by
+theorem multiple_rewrites (P Q R : Prop) (h₁ : P ↔ Q) (h₂ : R ↔ Q) : P ↔ R := by
   rw [h₁]
   rw [h₂] -- implicit `rfl` call automatically closes `Q ↔ Q` in goal
 
-#print test -- tells us that `Iff.rfl` is invoked
+#print multiple_rewrites -- tells us that `Iff.rfl` is invoked
 
 example (P Q R : Prop) (h₁ : P ↔ Q) (h₂ : R ↔ Q) : P ↔ R := by
   rw [h₁, h₂] -- first replaces `P` with `Q`, then `R` with `Q` for `Q ↔ Q`
@@ -568,7 +568,7 @@ will become more clear when discussing quantifiers.
 
 Some common patterns:
 - `by exact p` becomes just `p`
-- `by intro p; exact f p` becomes `fun p => f p`
+- `by intro p; exact f p` becomes `f`
 - `by intro p; exact p` becomes `fun p => p` or simply `id`
 - `by rw [h₁] at p; exact p` becomes `(h₁ ▸ p)`
 
@@ -682,19 +682,56 @@ Turn all of the previous exercises into term mode proofs.
 
 -- Exercise 4.1
 -- Chain three implications together: if we can go from `P` to `Q` to `R` to `S`,  then `P → S`
-example (P Q R S : Prop) (h₁ : P → Q) (h₂ : Q → R) (h₃ : R → S) : P → S := sorry
+example (P Q R S : Prop) (h₁ : P → Q) (h₂ : Q → R) (h₃ : R → S) : P → S :=
+  fun p => h₃ (h₂ (h₁ p))
 
+example (P Q R S : Prop) (h₁ : P → Q) (h₂ : Q → R) (h₃ : R → S) : P → S :=
+  fun p => h₃ <| h₂ <| h₁ p
+
+example (P Q R S : Prop) (h₁ : P → Q) (h₂ : Q → R) (h₃ : R → S) : P → S :=
+  fun p => (h₃ ∘ h₂ ∘ h₁) p
+
+example (P Q R S : Prop) (h₁ : P → Q) (h₂ : Q → R) (h₃ : R → S) : P → S :=
+  h₃ ∘ h₂ ∘ h₁
 
 -- Exercise 4.2
 -- Nested implications: if `P` implies `(Q → R)` and `P` implies `Q`, then `P` implies `R`
-example (P Q R : Prop) (h₁ : P → Q → R) (h₂ : P → Q) : P → R := sorry
+example (P Q R : Prop) (h₁ : P → Q → R) (h₂ : P → Q) : P → R :=
+  fun p => (h₁ p) (h₂ p)
 
+-- `let` in fact is *not* a tactic but just a core lean component that defines
+-- so it is possible to use this in term mode!
+example (P Q R : Prop) (h₁ : P → Q → R) (h₂ : P → Q) : P → R :=
+  fun p =>
+  let q := h₂ p
+  let r_of_q := h₁ p
+  r_of_q q
 
 -- Exercise 4.3 (Master)
 -- Try turning this tactic mode proof into term mode, first without using
 -- `#print` and then using it
-example (P Q R : Prop) (h₁ : P ↔ Q) (h₂ : Q ↔ R) : P ↔ R := by
+theorem challenging_tactic_proof (P Q R : Prop) (h₁ : P ↔ Q) (h₂ : Q ↔ R) : P ↔ R := by
   rw [h₁.symm] at h₂
   exact h₂
 
-example (P Q R : Prop) (h₁ : P ↔ Q) (h₂ : Q ↔ R) : P ↔ R := sorry
+-- This does not work
+-- example (P Q R : Prop) (h₁ : P ↔ Q) (h₂ : Q ↔ R) : P ↔ R :=
+--   (h₁.symm ▸ h₂)
+
+#print challenging_tactic_proof -- Eq.mp (congrArg (fun _a ↦ _a ↔ R) (propext (Iff.symm h₁))) h₂
+
+-- We can just copy paste the result to term mode
+example (P Q R : Prop) (h₁ : P ↔ Q) (h₂ : Q ↔ R) : P ↔ R :=
+  Eq.mp (congrArg (fun _a ↦ _a ↔ R) (propext (Iff.symm h₁))) h₂
+
+-- We can clean it up a bit but not much...
+example (P Q R : Prop) (h₁ : P ↔ Q) (h₂ : Q ↔ R) : P ↔ R :=
+  (congrArg (fun _a ↦ _a ↔ R) (propext (h₁.symm))).mp h₂
+
+-- But `exact?` suggests something nice!
+example (P Q R : Prop) (h₁ : P ↔ Q) (h₂ : Q ↔ R) : P ↔ R :=  Iff.trans h₁ h₂
+
+-- We can also clean this up...
+example (P Q R : Prop) (h₁ : P ↔ Q) (h₂ : Q ↔ R) : P ↔ R := h₁.trans h₂
+
+-- But this is already using things we will learn about later!
