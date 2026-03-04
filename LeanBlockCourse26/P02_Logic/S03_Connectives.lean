@@ -254,3 +254,317 @@ example (P Q R : Prop) (h₁ : P → Q) (h₂ : P → R) : P → (Q ∧ R) := by
 -- ... and finally get a simple term proof.
 example (P Q R : Prop) (h₁ : P → Q) (h₂ : P → R) : P → (Q ∧ R) :=
   fun p => ⟨h₁ p, h₂ p⟩
+
+/-
+## Intermission: The `repeat`, `all_goals`, `try`, and `<;>` tactics
+
+- `repeat tac` repeatedly applies `tac` to the main goals until it fails.
+- `all_goals tac` runs `tac` on each goal, concatenating the resulting goals, if any.
+- `try tac` attempts to run `tac` without causing failure if it does not apply.
+- `tac <;> tac'` runs `tac` on the main goal and `tac'` on each produced goal.
+
+They are respectively used around 150, 500, 400, and 7000 times in mathlib.
+-/
+
+-- We have seen this example before ...
+example (P Q : Prop) (h : P ∧ Q) : Q ∧ P := by
+  cases h       -- or `obtain ⟨p, q⟩ := h` or `rcases h with ⟨p, q⟩`
+  constructor
+  · assumption
+  · assumption
+
+-- ... but now we can do it more compactly with `repeat` ...
+example (P Q : Prop) (h : P ∧ Q) : Q ∧ P := by
+  cases h
+  constructor
+  repeat assumption
+
+-- ... or alternatively with `all_goals` ...
+example (P Q : Prop) (h : P ∧ Q) : Q ∧ P := by
+  cases h
+  constructor
+  all_goals assumption
+
+-- ... or with `<;>`
+example (P Q : Prop) (h : P ∧ Q) : Q ∧ P := by
+  cases h
+  constructor <;> assumption
+
+-- We can also just `try` to execute a tactic.
+example (P Q : Prop) (h : P ∧ Q) : Q ∧ P := by
+  obtain ⟨p, q⟩ := h
+  constructor
+  all_goals    -- This is needed since otherwise `try exact p` would only try to match goal 1
+    try exact p  -- Here the `try` is required ...
+    try exact q  -- ... and here of course the `try` is superfluous,
+
+-- Testing the boundaries
+
+example (P Q : Prop) (h : P ∧ Q) : Q ∧ P := by
+  obtain ⟨p, q⟩ := h
+  constructor
+  repeat exact q  -- correctly applies to first goal
+  exact p
+
+example (P Q : Prop) (h : P ∧ Q) : Q ∧ P := by
+  obtain ⟨p, q⟩ := h
+  constructor
+  repeat exact p  -- works technically but doesn't actually do anything (linter complains)
+  exact q
+  exact p
+
+-- This fails: `all_goals` *actually* applies, *repeat* just tried to apply and stops
+-- example (P Q : Prop) (h : P ∧ Q) : Q ∧ P := by
+--   obtain ⟨p, q⟩ := h
+--   constructor
+--   all_goals
+--     exact q
+--   exact p
+
+-- For the same reason this fails:
+-- example (P Q : Prop) (h : P ∧ Q) : Q ∧ P := by
+--   obtain ⟨p, q⟩ := h
+--   constructor <;> exact p
+--   exact q
+
+-- So you need `try` in both the `all_goals` ...
+example (P Q : Prop) (h : P ∧ Q) : Q ∧ P := by
+  obtain ⟨p, q⟩ := h
+  constructor
+  all_goals
+    try exact q
+  exact p
+
+-- ... and the `<;>`
+example (P Q : Prop) (h : P ∧ Q) : Q ∧ P := by
+  obtain ⟨p, q⟩ := h
+  constructor <;> try exact p
+  exact q
+  
+/-
+Basically: chained `<;>` is the same as an indented `all_goals` block.
+
+* `all_goals` is parallel but fails if something does not fit the expected type
+* `repeat` is sequential and stops if something does not fit the expected type
+* `all_goals` combined with `try` is parallel and does not fail
+-/
+
+/-
+## Working with OR (∨) in the goal
+
+To prove P ∨ Q, we need to prove either P or Q. We can:
+
+- Use `apply Or.inl`/`Or.inr` explicitly
+- Use `left`/`right` as shorthand
+-/
+
+-- The most explicit way to deal with `∨` in goal is to
+-- directly use `apply Or.inl` or `apply Or.inr`
+theorem goal_or_apply (P Q : Prop) (p : P) : P ∨ Q := by
+  apply Or.inl
+  exact p
+
+#print goal_or_apply -- gives `Or.inl p`
+
+-- Again note that `apply` is destructive since `apply Or.inr` here
+-- would have left us with a goal that cannot be proven from the assumptions.
+-- example (P Q : Prop) (p : P) : P ∨ Q := by
+--   apply Or.inr
+--   ... now we are stuck
+
+-- But we could have argued forward here ..
+theorem goal_or_exact (P Q : Prop) (p : P) : P ∨ Q := by
+  exact Or.inl p
+
+#print goal_or_exact -- also gives `Or.inl p`
+
+-- .. which also gives the term mode proof.
+theorem goal_or_term (P Q : Prop) (p : P) : P ∨ Q := Or.inl p
+
+#print goal_or_term -- also gives `Or.inl p`
+
+-- Perhaps more intuitive are the `left` and `right` tactics
+theorem goal_or_tactic (P Q : Prop) (p : P) : P ∨ Q := by
+  left
+  exact p
+
+#print goal_or_tactic -- also gives `Or.inl p`
+
+/-
+## Working with OR in a hypothesis
+
+To use `h : P ∨ Q`, we can:
+- Use `apply Or.elim` explicitly
+- Use `cases` and `rcases`
+- Use `obtain` with pattern matching
+-/
+
+-- We can deal with `∨` in a hypethesis by applying `Or.elim` directly,
+-- again using `·` to structure the proof to the sub-goals. Note that 
+-- `Or.elim {...} (h : a ∨ b) (left : a → c) (right : b → c) : c`
+
+-- Viewing `Or.elim` as a method, the most obvious thing to do is ...
+example (P Q R : Prop) (h : P ∨ Q) (p_to_r : P → R) (q_to_r : Q → R) : R := by
+  exact Or.elim h p_to_r q_to_r
+
+-- ... or even just use term mode.
+example (P Q R : Prop) (h : P ∨ Q) (p_to_r : P → R) (q_to_r : Q → R) : R :=
+  Or.elim h p_to_r q_to_r
+
+-- But if we want to get towards what we naturally expect, a case distinction,
+-- we need to use `apply` ...
+example (P Q R : Prop) (h : P ∨ Q) (p_to_r : P → R) (q_to_r : Q → R) : R := by
+  apply Or.elim h
+  · exact p_to_r  -- Note that you do not have `p : P` in the assumptions here ...
+  · exact q_to_r  -- ... and likewise you do not have `q : Q` here.
+
+-- ... but if you really want a case distinction as you expect it, you need.
+example (P Q R : Prop) (h : P ∨ Q) (p_to_r : P → R) (q_to_r : Q → R) : R := by
+  apply Or.elim h
+  · intro p
+    exact p_to_r p
+  · intro q
+    exact q_to_r q
+
+-- Note that `apply` just looks for the output of the applied statement in the
+-- goal and makes you prove all the assumptions of the applied statement, so
+-- if we did not do the partial application `Or.elim h`, we would have gotten
+-- three subgoals, since `Or.elim` takes three arguments.
+example (P Q R : Prop) (h : P ∨ Q) (p_to_r : P → R) (q_to_r : Q → R) : R := by
+  apply Or.elim    -- no `h` here
+  · exact h
+  · exact p_to_r
+  · exact q_to_r
+
+/-
+This show why tactis are good to have: you do not need to remember `Or.elim``
+or how exactly it is structured. You just use `cases`, `rcases`,  or `cases'`
+and get exactly the number of cases in the case distinction that you would expect.
+-/
+
+-- We can use the `cases` tactic to do a case distinction on a hypothesis ...
+example (P Q R : Prop) (h : P ∨ Q) (p_to_r : P → R) (q_to_r : Q → R) : R := by
+  cases h
+  · exact p_to_r (by assumption)
+  · exact q_to_r (by assumption)
+
+-- ... and if we want named variables we can also do proper pattern matching
+example (P Q R : Prop) (h : P ∨ Q) (p_to_r : P → R) (q_to_r : Q → R) : R := by
+  cases h with
+  | inl p => exact p_to_r p
+  | inr q => exact q_to_r q
+
+-- But most likely you should just use `rcases with _ | _` ...
+example (P Q R : Prop) (h : P ∨ Q) (p_to_r : P → R) (q_to_r : Q → R) : R := by
+  rcases h with p | q  -- compare to previous `rcases h with ⟨p, q⟩`
+  · exact p_to_r p
+  · exact q_to_r q
+
+-- ... or you can use `obatain _ | _ := ...`
+example (P Q R : Prop) (h : P ∨ Q) (p_to_r : P → R) (q_to_r : Q → R) : R := by
+  obtain p | q := h   -- compare to previous `obtain ⟨p, q⟩ := h`
+  · exact p_to_r p
+  · exact q_to_r q
+
+-- Note that `cases'` is likewise marked as deprecated by the linter.
+example (P Q R : Prop) (h : P ∨ Q) (p_to_r : P → R) (q_to_r : Q → R) : R := by
+  cases' h with p q
+  · exact p_to_r p
+  · exact q_to_r q
+
+/-
+## Working with nested structures
+
+For more complex structures, we can:
+- Use `rcases` for deep pattern matching
+- Use `obtain` with nested patterns
+-/
+
+-- This is the brute force way ...
+example (P Q R : Prop) (h : P ∧ Q ∧ R) : Q := by
+  obtain ⟨_, qr⟩ := h
+  obtain ⟨q, _⟩ := qr
+  exact q
+
+-- ... but even with what we have seen there is a nicer (term mode) proof.
+example (P Q R : Prop) (h : P ∧ Q ∧ R) : Q :=
+  h.right.left  -- or `h.2.1`
+
+-- But we can also do the deconstruction of `h` in the assumptions more cleanly:
+example (P Q R : Prop) (h : P ∧ Q ∧ R) : Q := by
+  obtain ⟨_, ⟨q, _⟩⟩ := h
+  exact q
+
+-- We can even get rid of the nested brackets ...
+example (P Q R : Prop) (h : P ∧ Q ∧ R) : Q := by
+  obtain ⟨_, q, _⟩ := h
+  exact q
+
+-- ... but only because `P ∧ Q ∧ R` was bracketed the "natural" way.
+example (P Q R : Prop) (h : (P ∧ Q) ∧ R) : Q := by
+  obtain ⟨⟨_, q⟩, _⟩ := h  -- here `⟨_, q, _⟩` does not work because of `(P ∧ Q) ∧ R`
+  exact q
+
+-- Nested patterns also work with `rcases`.
+example (P Q R : Prop) (h : P ∧ Q ∧ R) : Q := by
+  rcases h with ⟨_, q, _⟩
+  exact q
+
+
+/-
+## The `rintro` tactic
+
+`rintro` allows for more complex pattern matching and is
+used around 7500 times in mathlib.
+-/
+
+-- Mixing `∧` with `∨` can quickly becomes very annoying ...
+example (P Q R : Prop) : (P ∧ Q) ∨ R → P ∨ R := by
+  intro h
+  rcases h with pq | r
+  · obtain ⟨p, q⟩ := pq
+    left
+    exact p
+  · right
+    exact r
+
+-- ... but we can also do mixed nested patterns with `rcases` ...
+example (P Q R : Prop) : (P ∧ Q) ∨ R → P ∨ R := by
+  intro h
+  rcases h with ⟨p, q⟩ | r
+  · left
+    exact p
+  · right
+    exact r
+
+-- ... or with `obtain`
+example (P Q R : Prop) : (P ∧ Q) ∨ R → P ∨ R := by
+  intro h
+  obtain ⟨p, q⟩ | r := h
+  · left
+    exact p
+  · right
+    exact r
+
+-- But if we also want to do the pattern matching in the
+-- `intro` (like we have previously seen) we now need `rintro`.
+example (P Q R : Prop) : (P ∧ Q) ∨ R → P ∨ R := by
+  rintro (⟨p, q⟩ | r)
+  · left
+    exact p
+  · right
+    exact r
+
+/-
+# Exercise Block B02
+
+Hint: try `rintro` with nested structures
+-/
+
+-- Exercise 2.1
+example (P Q R S : Prop) : (P ∨ Q) ∧ (R ∨ S) → (P ∧ R) ∨ (P ∧ S) ∨ (Q ∧ R) ∨ (Q ∧ S) := by
+  sorry
+
+-- Exercise 2.2
+example (P Q R S : Prop) : ((P ∧ Q) ∨ R) ∧ S → (P ∨ R) ∧ (Q ∨ R) ∧ S := by
+  sorry
