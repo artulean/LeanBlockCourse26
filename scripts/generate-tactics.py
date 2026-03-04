@@ -169,6 +169,21 @@ def generate(
         "",
     ]
 
+    # Cheatsheet
+    cheatsheet = data.get("cheatsheet", [])
+    if cheatsheet:
+        lines.append("## Quick Reference")
+        lines.append("")
+        lines.append("What tactic should I use when I see a particular pattern?")
+        lines.append("")
+        lines.append("| You see … | In the **goal** | In a **hypothesis** |")
+        lines.append("|-----------|----------------|---------------------|")
+        for row in cheatsheet:
+            lines.append(
+                f"| `{row['pattern']}` | {row['in_goal']} | {row['in_hyp']} |"
+            )
+        lines.append("")
+
     has_counts = any(
         t.get("mathlib_count_rounded", 0) > 0
         for g in data["groups"]

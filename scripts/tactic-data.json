@@ -1,6 +1,68 @@
 {
   "version": 1,
   "mathlib_version": "2026-03-04",
+  "cheatsheet": [
+    {
+      "pattern": "P → Q",
+      "in_goal": "`intro`",
+      "in_hyp": "`apply`, `have := h ..`"
+    },
+    {
+      "pattern": "∀ x, P x",
+      "in_goal": "`intro`",
+      "in_hyp": "`apply`, `have := h ..`"
+    },
+    {
+      "pattern": "P ∧ Q",
+      "in_goal": "`constructor`",
+      "in_hyp": "`obtain ⟨_, _⟩ := h`, `h.1`/`h.2`"
+    },
+    {
+      "pattern": "P ∨ Q",
+      "in_goal": "`left` / `right`",
+      "in_hyp": "`cases`, `rcases`, `obtain`"
+    },
+    {
+      "pattern": "P ↔ Q",
+      "in_goal": "`constructor`",
+      "in_hyp": "`rw`, `h.mp`/`h.mpr`"
+    },
+    {
+      "pattern": "¬P",
+      "in_goal": "`intro`",
+      "in_hyp": "`apply h`, `contradiction`"
+    },
+    {
+      "pattern": "∃ x, P x",
+      "in_goal": "`use`",
+      "in_hyp": "`obtain ⟨x, hx⟩ := h`"
+    },
+    {
+      "pattern": "a = b",
+      "in_goal": "`rfl`, `calc`, `linarith`, `ring`, `omega`",
+      "in_hyp": "`rw [h]`, `rw [← h]`"
+    },
+    {
+      "pattern": "a ≠ b",
+      "in_goal": "`intro h` (unfolds to `a = b → False`)",
+      "in_hyp": "`apply h`, `contradiction`"
+    },
+    {
+      "pattern": "True",
+      "in_goal": "`trivial`",
+      "in_hyp": "—"
+    },
+    {
+      "pattern": "False",
+      "in_goal": "`exfalso`",
+      "in_hyp": "`contradiction`, `exact h.elim`"
+    },
+    {
+      "pattern": "anything",
+      "in_goal": "`assumption`, `exact?`, `tauto`",
+      "in_hyp": "`simp [h]`"
+    }
+  ],
   "groups": [
     {
       "title": "Closing Tactics",
