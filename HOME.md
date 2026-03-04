@@ -7,11 +7,11 @@ permalink: /
 # Formalized Math in LEAN – FUB Block Course 2026
 
 <!-- begin announcements -->
-<style>.announcements {  border: 1px solid #e8e8e8; border-left: 4px solid #f0c36d;  border-radius: 4px; margin: 1rem 0; padding: 0;}.announcement-item {  padding: 0.5rem 1rem; line-height: 1.6;}.announcement-item + .announcement-item {  border-top: 1px solid #f0f0f0;}.announcements summary {  padding: 0.5rem 1rem; cursor: pointer; color: #586069;  font-size: 0.9em;}.announcements details {  border-top: 1px solid #e8e8e8;}.announcements details .announcement-item:first-child {  border-top: none;}</style>
+<style>.announcements {  border: 1px solid #e8e8e8; border-left: 4px solid #f0c36d;  border-radius: 4px; margin: 1rem 0; padding: 0;}.announcement-item {  display: flex; gap: 0.5rem;  padding: 0.5rem 1rem; line-height: 1.6;}.announcement-item > .label {  flex-shrink: 0; align-self: baseline;}.announcement-item + .announcement-item {  border-top: 1px solid #f0f0f0;}.announcements summary {  padding: 0.5rem 1rem; cursor: pointer; color: #586069;  font-size: 0.9em;}.announcements details {  border-top: 1px solid #e8e8e8;}.announcements details .announcement-item:first-child {  border-top: none;}</style>
 <div class="announcements">
-<div class="announcement-item"><span class="label label-yellow">Tue, Mar 3 · 17:44</span> Since we went over by 10 minutes, on Wednesday (March 4) we start at <strong>10:00</strong> instead of 9:30.</div>
-<div class="announcement-item"><span class="label label-yellow">Tue, Mar 3 · 18:08</span> Since we went over by 30 minutes, on Tuesday (March 3) we start at <strong>9:40</strong> instead of 9:30.</div>
-<div class="announcement-item"><span class="label label-yellow">Tue, Mar 3 · 18:08</span> Uploaded slides for <code>P01_Introduction</code>.</div>
+<div class="announcement-item"><span class="label label-yellow">Tue, Mar 3 · 17:44</span><span>Since we went over by 10 minutes, on Wednesday (March 4) we start at <strong>10:00</strong> instead of 9:30.</span></div>
+<div class="announcement-item"><span class="label label-yellow">Tue, Mar 3 · 18:08</span><span>Since we went over by 30 minutes, on Tuesday (March 3) we start at <strong>9:40</strong> instead of 9:30.</span></div>
+<div class="announcement-item"><span class="label label-yellow">Tue, Mar 3 · 18:08</span><span>Uploaded slides for <code>P01_Introduction</code>.</span></div>
 </div><!-- end announcements -->
 
 This is the second time this course is being held. The structure will largely follow last year's with some additions and modifications, but is nevertheless subject to (spontaneous) change. Constructive feedback is welcomed throughout the course and afterwards.

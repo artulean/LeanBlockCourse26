@@ -334,8 +334,8 @@ def render_announcement(ann: Announcement) -> str:
     """Render a single announcement as a compact row."""
     return (
         f'<div class="announcement-item">'
-        f'{format_label(ann)} '
-        f'{inline_md_to_html(ann.body)}'
+        f'{format_label(ann)}'
+        f'<span>{inline_md_to_html(ann.body)}</span>'
         f'</div>'
     )
 
@@ -362,7 +362,11 @@ def inject_announcements() -> None:
         '  border-radius: 4px; margin: 1rem 0; padding: 0;'
         '}'
         '.announcement-item {'
+        '  display: flex; gap: 0.5rem;'
         '  padding: 0.5rem 1rem; line-height: 1.6;'
+        '}'
+        '.announcement-item > .label {'
+        '  flex-shrink: 0; align-self: baseline;'
         '}'
         '.announcement-item + .announcement-item {'
         '  border-top: 1px solid #f0f0f0;'
