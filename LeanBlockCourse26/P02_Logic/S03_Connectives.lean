@@ -68,7 +68,7 @@ theorem goal_and_apply' (P Q : Prop) (p : P) (q : Q) : P ∧ Q := by
   · exact p -- The `\.` produces · and focuses on the next goal
   · exact q
 
-#print goal_and_apply' -- also produces `⟨p, q⟩`
+#print goal_and_apply' -- also produces `⟨p, q⟩` 
 
 -- In order not to have to remember `And.intro` (and the equivalent names
 -- for any other structures in the future), we can use the `constructor` tactic
@@ -204,12 +204,17 @@ example (P Q : Prop) : (P ∧ Q) → P := by
   obtain ⟨p, _⟩ := h
   exact p
 
-example (P Q : Prop) : (P ∧ Q) → P := by
+theorem and_intro (P Q : Prop) : (P ∧ Q) → P := by
   intro ⟨p, _⟩
   exact p
 
--- This also works nicely in term mode
+-- This also works nicely in term mode ...
 example (P Q : Prop) : (P ∧ Q) → P := fun ⟨p, _⟩ => p
+
+-- ... which is just nicer notation for the term given by `#print and_intro`
+example (P Q : Prop) : (P ∧ Q) → P := 
+  fun h => match h with
+    | ⟨p, _⟩ => p
 
 -- Note that this is different from
 example (P Q : Prop) : P → Q → P := fun p _ => p
@@ -555,12 +560,26 @@ example (P Q R : Prop) : (P ∧ Q) ∨ R → P ∨ R := by
 
 -- But if we also want to do the pattern matching in the
 -- `intro` (like we have previously seen) we now need `rintro`.
-example (P Q R : Prop) : (P ∧ Q) ∨ R → P ∨ R := by
+theorem and_or_rintro (P Q R : Prop) : (P ∧ Q) ∨ R → P ∨ R := by
   rintro (⟨p, q⟩ | r)
   · left
     exact p
   · right
     exact r
+
+-- `#print and_or_rintro` gives us ...
+example (P Q R : Prop) : (P ∧ Q) ∨ R → P ∨ R :=
+  fun a ↦ Or.casesOn a (fun h ↦ And.casesOn h fun p _ ↦ Or.inl p) fun r ↦ Or.inr r
+
+-- .. which we can simplify to ...
+example (P Q R : Prop) : (P ∧ Q) ∨ R → P ∨ R :=
+  fun a ↦ Or.casesOn a (fun ⟨p, _⟩ ↦ Or.inl p) fun r ↦ Or.inr r
+
+-- .. which can also be expressed with pattern matching.
+example (P Q R : Prop) : (P ∧ Q) ∨ R → P ∨ R :=
+  fun h ↦ match h with
+  | Or.inl ⟨p, _⟩ => Or.inl p
+  | Or.inr r      => Or.inr r
 
 /-
 # Exercise Block B02
@@ -580,9 +599,109 @@ parses as `(P ∧ R) ∨ ((P ∧ S) ∨ ((Q ∧ R) ∨ (Q ∧ S)))`. This means
 -/
 
 -- Exercise 2.1 (🥉170 🥈150 🏅130)
+
+-- Under 170 characters 🥉
 example (P Q R S : Prop) : (P ∨ Q) ∧ (R ∨ S) → (P ∧ R) ∨ (P ∧ S) ∨ (Q ∧ R) ∨ (Q ∧ S) := by
-  sorry
+  intro pqrs
+  obtain ⟨pq, rs⟩ := pqrs
+  cases' pq with p q
+  · cases' rs with r s
+    · left; exact ⟨p, r⟩
+    · right; left; exact ⟨p, s⟩
+  · cases' rs with r s
+    · right; right; left; exact ⟨q, r⟩
+    · right; right; right; exact ⟨q, s⟩
+
+-- Under 150 characters 🥈
+example (P Q R S : Prop) : (P ∨ Q) ∧ (R ∨ S) → (P ∧ R) ∨ (P ∧ S) ∨ (Q ∧ R) ∨ (Q ∧ S) := by
+  intro ⟨pq, rs⟩
+  cases' pq with p q
+  all_goals cases' rs with r s
+  · left; exact ⟨p, r⟩
+  · right; left; exact ⟨p, s⟩
+  · right; right; left; exact ⟨q, r⟩
+  · right; right; right; exact ⟨q, s⟩
+
+-- Under 130 characters! 🏅
+example (P Q R S : Prop) : (P ∨ Q) ∧ (R ∨ S) → (P ∧ R) ∨ (P ∧ S) ∨ (Q ∧ R) ∨ (Q ∧ S) := by
+  rintro ⟨p | q, r | s⟩
+  · exact Or.inl ⟨p, r⟩
+  · exact Or.inr <| Or.inl ⟨p, s⟩
+  · exact Or.inr <| Or.inr <| Or.inl ⟨q, r⟩
+  · exact Or.inr <| Or.inr <| Or.inr ⟨q, s⟩
+
+-- Exactly 101 characters! 🏅🏅
+example (P Q R S : Prop) : (P ∨ Q) ∧ (R ∨ S) → (P ∧ R) ∨ (P ∧ S) ∨ (Q ∧ R) ∨ (Q ∧ S) := by
+  rintro ⟨p | q, r | s⟩
+  · left
+    exact ⟨p, r⟩
+  · right
+    left
+    exact ⟨p, s⟩
+  · right
+    right
+    left
+    exact ⟨q, r⟩
+  · right
+    right
+    right
+    exact ⟨q, s⟩ -- should have excluded `;` from the count as well...
+
+-- Or we could have cheated with `simp_all`...
+example (P Q R S : Prop) : (P ∨ Q) ∧ (R ∨ S) → (P ∧ R) ∨ (P ∧ S) ∨ (Q ∧ R) ∨ (Q ∧ S) := by
+  rintro ⟨p | q, r | s⟩
+  all_goals simp_all -- we will learn about this technique later ...
 
 -- Exercise 2.2 (🥉150 🥈130 🏅100)
+
+-- Exactly 124 characters... 🥈
 example (P Q R S : Prop) : ((P ∧ Q) ∨ R) ∧ S → (P ∨ R) ∧ (Q ∨ R) ∧ S := by
-  sorry
+  rintro ⟨h | r, s⟩
+  constructor
+  · left
+    exact h.1
+  · constructor
+    · left
+      exact h.2
+    · exact s
+  · constructor
+    · right
+      exact r
+    · constructor
+      · right
+        exact r
+      · exact s
+
+-- ... and if you accept the broken linter you can even get down to 122 characters
+example (P Q R S : Prop) : ((P ∧ Q) ∨ R) ∧ S → (P ∨ R) ∧ (Q ∨ R) ∧ S := by
+  rintro ⟨h | r, s⟩
+  constructor
+  · left
+    exact h.1
+  constructor
+  · left
+    exact h.2
+  · exact s
+  constructor
+  · right
+    exact r
+  · constructor
+    · right
+      exact r
+    · exact s
+
+-- Under 100 characters 🏅
+example (P Q R S : Prop) : ((P ∧ Q) ∨ R) ∧ S → (P ∨ R) ∧ (Q ∨ R) ∧ S := by
+  rintro ⟨⟨p, q⟩ | r, s⟩
+  · constructor
+    · left; exact p
+    · constructor
+      · left; exact q
+      · exact s
+  · exact ⟨Or.inr r, Or.inr r, s⟩
+
+-- 67 characters 🏅🏅
+example (P Q R S : Prop) : ((P ∧ Q) ∨ R) ∧ S → (P ∨ R) ∧ (Q ∨ R) ∧ S := by
+  rintro ⟨⟨p, q⟩ | r, s⟩
+  · exact ⟨Or.inl p, Or.inl q, s⟩
+  · exact ⟨Or.inr r, Or.inr r, s⟩
