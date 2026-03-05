@@ -581,7 +581,6 @@ Around 100,000 proofs out of 320,000 in mathlib are written in tactic mode,
 though this includes proofs of minor facts where term mode is more appropriate.
 -/
 
--- This is `imp_intro` in Lean (Init.Core)
 lemma id_proof (P Q : Prop) (p : P) (q : Q) : P := by
   assumption -- or `exact p`
 
