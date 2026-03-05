@@ -883,7 +883,7 @@ example (P Q R : Prop) : (P ∨ Q) ∨ R ↔ P ∨ (Q ∨ R) := by
     · right; left; exact q
     · right; right; exact r
 
-  -- The modus tolens `.mpr`
+  -- The reverse direction `.mpr`
   · rintro (p | q | r)  -- no second pair of brackets needed here because `|` right  associates
     · left; left; exact p
     · left; right; exact q
@@ -902,7 +902,7 @@ example (P Q R : Prop) : (P ∧ Q) ∨ R ↔ (P ∨ R) ∧ (Q ∨ R) := by
       · right; exact r
       · right; exact r
 
-  -- The modus tolens `.mpr`
+  -- The reverse direction `.mpr`
   · rintro ⟨ (p | r), (q | r)⟩
     · left; exact ⟨p, q⟩
     · right; exact r
@@ -923,7 +923,7 @@ example (P Q R : Prop) : (P ∧ Q) ∨ R ↔ (P ∨ R) ∧ (Q ∨ R) := by
     · right; exact r
     · right; exact r
 
-  -- The modus tolens `.mpr`
+  -- The reverse direction `.mpr`
   · rintro ⟨ (p | r), (q | r)⟩
     · left; exact ⟨p, q⟩
     · right; exact r

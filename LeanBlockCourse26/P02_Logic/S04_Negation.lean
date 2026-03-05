@@ -33,7 +33,7 @@ In Lean, `¬P` is defined as `P → False`. This perspective allows us to:
 #check Not -- `Not (a : Prop) : Prop`, i.e., `Prop → Prop`
 
 /-
-In lean, `Not` is just constructed as `a → False`, so the only ingredients
+In Lean, `Not` is just constructed as `a → False`, so the only ingredients
 needed are the type `Prop : Type` and `False : Prop` and the functional
 composition through `→`.
 
@@ -45,7 +45,7 @@ def Not (a : Prop) : Prop := a → False
 example (P : Prop) : ¬P ↔ (P → False) := by
   rfl
 
---- ... but we can also be a bit more verbose.
+-- ... but we can also be a bit more verbose.
 example (P : Prop) : ¬P ↔ (P → False) := by
   constructor
   · intro h  -- `h` states that `P` is not true, that is `P → False`
@@ -109,7 +109,7 @@ example (P : Prop) (h : P) : P := by
   trivial
 
 /-
-# The `exfalso` tactic
+## The `exfalso` tactic
 
 The `exfalso` tactic converts any goal to `False`, allowing you to:
 
@@ -133,7 +133,7 @@ theorem exfalso_example (P : Prop) (h : False) : P := by
 
 Normalizes negated expressions by pushing negation inward:
 
-- Converts `¬(P ∧ Q)` to `¬P ∨ ¬Q`
+- Converts `¬(P ∧ Q)` to `P → ¬Q`
 - Converts `¬(P → Q)` to `P ∧ ¬Q`
 - Converts `¬¬P` to `P` (uses law of excluded middle: `P ∨ ¬P`)
 - Simplifies nested negations
