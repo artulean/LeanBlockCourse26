@@ -240,7 +240,7 @@ example {R : Set α} (h₁ : S ⊂ T) (h₂ : T ⊆ R) : S ⊂ R := by
   sorry
 
 -- Exercise 1.6 (Master)
-example : ∃ U : Set α, U ⊆ S := by
+example : ∃ U, U ⊆ S := by
   sorry
 
 end P03S01B01
